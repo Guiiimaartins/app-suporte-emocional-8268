@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import Stripe from 'stripe';
 
 export async function POST(request: Request) {
   try {
@@ -10,10 +11,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Assinatura ausente' }, { status: 400 });
     }
 
-    const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+    if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
+      return NextResponse.json({ error: 'Stripe não configurado' }, { status: 500 });
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia',
+    });
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    let event;
+    let event: Stripe.Event;
 
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
@@ -25,32 +32,36 @@ export async function POST(request: Request) {
     // Processar eventos do Stripe
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object;
+        const session = event.data.object as Stripe.Checkout.Session;
         const userId = session.client_reference_id;
 
-        // Atualizar usuário para premium
-        await supabase
-          .from('user_profiles')
-          .update({
-            subscription_status: 'premium',
-            subscription_started_at: new Date().toISOString(),
-          })
-          .eq('id', userId);
+        if (userId) {
+          // Atualizar usuário para premium
+          await supabase
+            .from('user_profiles')
+            .update({
+              subscription_status: 'premium',
+              subscription_started_at: new Date().toISOString(),
+            })
+            .eq('id', userId);
+        }
 
         break;
       }
 
       case 'customer.subscription.deleted': {
-        const subscription = event.data.object;
-        const userId = subscription.metadata.userId;
+        const subscription = event.data.object as Stripe.Subscription;
+        const userId = subscription.metadata?.userId;
 
-        // Downgrade para free
-        await supabase
-          .from('user_profiles')
-          .update({
-            subscription_status: 'free',
-          })
-          .eq('id', userId);
+        if (userId) {
+          // Downgrade para free
+          await supabase
+            .from('user_profiles')
+            .update({
+              subscription_status: 'free',
+            })
+            .eq('id', userId);
+        }
 
         break;
       }
