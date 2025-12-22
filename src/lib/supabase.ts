@@ -8,10 +8,15 @@ export const isSupabaseConfigured = () => {
   return supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http');
 };
 
-// Cliente Supabase com fallback seguro que não quebra o app
+// Cliente Supabase - retorna null se não configurado (evita erro no build)
 export const supabase = isSupabaseConfigured() 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : createClient('https://demo.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRlbW8iLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MTc2OTIwMCwiZXhwIjoxOTU3MzQ1MjAwfQ.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE');
+  : null;
+
+// Helper para verificar se pode usar Supabase
+export const canUseSupabase = () => {
+  return supabase !== null;
+};
 
 // Tipos do banco de dados
 export type UserProfile = {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { supabase, canUseSupabase } from '@/lib/supabase';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,6 +9,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Email e senha são obrigatórios' },
         { status: 400 }
+      );
+    }
+
+    // Verificar se Supabase está configurado
+    if (!canUseSupabase() || !supabase) {
+      return NextResponse.json(
+        { error: 'Sistema de autenticação não configurado. Configure as variáveis de ambiente do Supabase.' },
+        { status: 503 }
       );
     }
 

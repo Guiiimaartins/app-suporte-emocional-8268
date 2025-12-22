@@ -8,13 +8,15 @@ export async function POST(request: Request) {
     // Verificar se a chave do Stripe está configurada
     if (!process.env.STRIPE_SECRET_KEY) {
       return NextResponse.json(
-        { error: 'Stripe não configurado' },
-        { status: 500 }
+        { error: 'Stripe não configurado. Configure a variável STRIPE_SECRET_KEY.' },
+        { status: 503 }
       );
     }
 
     // Criar sessão de checkout do Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-11-20.acacia',
+    });
 
     const priceId = plan === 'monthly' 
       ? process.env.STRIPE_PRICE_MONTHLY 
@@ -22,8 +24,8 @@ export async function POST(request: Request) {
 
     if (!priceId) {
       return NextResponse.json(
-        { error: 'Plano não configurado' },
-        { status: 500 }
+        { error: 'Plano não configurado. Configure as variáveis STRIPE_PRICE_MONTHLY e STRIPE_PRICE_YEARLY.' },
+        { status: 503 }
       );
     }
 
@@ -36,8 +38,8 @@ export async function POST(request: Request) {
         },
       ],
       mode: 'subscription',
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/subscription/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/subscription`,
       client_reference_id: userId,
       metadata: {
         userId,
