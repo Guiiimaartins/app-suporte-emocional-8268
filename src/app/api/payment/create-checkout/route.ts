@@ -14,9 +14,7 @@ export async function POST(request: Request) {
     }
 
     // Criar sessão de checkout do Stripe
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia',
-    });
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
     const priceId = plan === 'monthly' 
       ? process.env.STRIPE_PRICE_MONTHLY 
