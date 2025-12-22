@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase, canUseSupabase } from '@/lib/supabase';
 
+export const runtime = 'edge';
+
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    // Parse do body
+    const body = await request.json();
+    const { email, password } = body;
 
     if (!email || !password) {
       return NextResponse.json(

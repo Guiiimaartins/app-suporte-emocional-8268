@@ -3,6 +3,14 @@ import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
+    // Verificar se o cliente Supabase está disponível
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Configuração do Supabase não encontrada. Configure as variáveis de ambiente.' },
+        { status: 500 }
+      );
+    }
+
     const { userId, messages } = await request.json();
 
     // Verificar se usuário tem acesso premium
