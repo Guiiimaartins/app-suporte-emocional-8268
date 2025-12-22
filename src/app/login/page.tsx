@@ -7,20 +7,46 @@ import { Sparkles, Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     name: '',
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você integraria com seu sistema de autenticação
-    // Por enquanto, apenas redireciona para onboarding
-    if (isLogin) {
-      window.location.href = '/dashboard';
-    } else {
-      window.location.href = '/onboarding';
+    setLoading(true);
+    setError('');
+
+    try {
+      const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao processar requisição');
+      }
+
+      // Sucesso - redirecionar
+      if (isLogin) {
+        window.location.href = '/dashboard';
+      } else {
+        window.location.href = '/onboarding';
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao processar requisição');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -49,6 +75,12 @@ export default function LoginPage() {
 
         {/* Form Card */}
         <div className="bg-white rounded-3xl shadow-2xl p-8">
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+              {error}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <div>
@@ -62,6 +94,7 @@ export default function LoginPage() {
                   className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition-colors"
                   placeholder="Como podemos te chamar?"
                   required={!isLogin}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -79,6 +112,7 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition-colors"
                   placeholder="seu@email.com"
                   required
+                  disabled={loading}
                 />
               </div>
             </div>
@@ -96,11 +130,13 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-purple-500 focus:outline-none transition-colors"
                   placeholder="••••••••"
                   required
+                  disabled={loading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  disabled={loading}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
@@ -121,10 +157,11 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white py-4 rounded-xl font-semibold text-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLogin ? 'Entrar' : 'Criar Conta'}
-              <ArrowRight className="w-5 h-5" />
+              {loading ? 'Processando...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+              {!loading && <ArrowRight className="w-5 h-5" />}
             </button>
           </form>
 
@@ -159,8 +196,12 @@ export default function LoginPage() {
             {' '}
             <button
               type="button"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+              }}
               className="text-purple-600 hover:text-purple-700 font-semibold"
+              disabled={loading}
             >
               {isLogin ? 'Criar conta' : 'Entrar'}
             </button>
