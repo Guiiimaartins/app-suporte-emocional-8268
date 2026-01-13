@@ -1,36 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aura - Seu espaço de calma
 
-## Getting Started
+Aplicativo de bem-estar emocional com suporte de IA, exercícios de respiração e comunidade acolhedora.
 
-First, run the development server:
+## 🚀 Deploy na Vercel
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+### Passo 1: Preparar o Projeto
+
+1. Certifique-se de que todos os arquivos estão commitados no Git
+2. Faça push para o GitHub/GitLab/Bitbucket
+
+### Passo 2: Configurar Variáveis de Ambiente na Vercel
+
+Antes de fazer o deploy, configure estas variáveis de ambiente no painel da Vercel:
+
+#### Obrigatórias:
+- `NEXT_PUBLIC_SUPABASE_URL` - URL do seu projeto Supabase
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Chave anônima do Supabase
+- `OPENAI_API_KEY` - Chave da API OpenAI
+
+#### Opcionais (para pagamentos):
+- `STRIPE_SECRET_KEY` - Chave secreta do Stripe
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - Chave pública do Stripe
+
+### Passo 3: Deploy
+
+1. Acesse [vercel.com](https://vercel.com)
+2. Clique em "Add New Project"
+3. Importe seu repositório
+4. Configure as variáveis de ambiente (Settings → Environment Variables)
+5. Clique em "Deploy"
+
+### Passo 4: Configurar Banco de Dados
+
+Execute os scripts SQL no Supabase (encontrados em `schema.sql`):
+
+```sql
+-- Execute no SQL Editor do Supabase
+-- O arquivo schema.sql contém todas as tabelas necessárias
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Desenvolvimento Local
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Instalar dependências
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Copiar arquivo de exemplo de variáveis
+cp .env.example .env.local
 
-## Learn More
+# Editar .env.local com suas credenciais
 
-To learn more about Next.js, take a look at the following resources:
+# Rodar em desenvolvimento
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📦 Estrutura do Projeto
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/              # Páginas e rotas
+│   ├── api/         # API routes
+│   ├── auth/        # Autenticação
+│   ├── chat/        # Chat com IA
+│   ├── dashboard/   # Dashboard principal
+│   └── ...
+├── components/      # Componentes reutilizáveis
+├── lib/            # Utilitários e configurações
+└── hooks/          # React hooks customizados
+```
 
-## Deploy on Vercel
+## 🔧 Troubleshooting
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Erro "Project not found"
+- Verifique se as variáveis de ambiente estão configuradas corretamente
+- Certifique-se de que o Supabase está configurado
+- Verifique se o build está passando sem erros
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Erro de autenticação
+- Confirme que as chaves do Supabase estão corretas
+- Verifique se as tabelas foram criadas no banco de dados
+- Certifique-se de que as políticas RLS estão configuradas
+
+### Erro no chat com IA
+- Verifique se a chave da OpenAI está configurada
+- Confirme que você tem créditos na conta OpenAI
+- Verifique os logs da Vercel para mais detalhes
+
+## 📝 Licença
+
+Desenvolvido com 💜 para quem precisa de acolhimento

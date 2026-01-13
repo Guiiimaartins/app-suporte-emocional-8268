@@ -1,17 +1,24 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: Request) {
   try {
-    // Verificar se o cliente Supabase está disponível
-    if (!supabase) {
+    const { userId, messages } = await request.json();
+
+    // Obter variáveis de ambiente
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
         { error: 'Configuração do Supabase não encontrada. Configure as variáveis de ambiente.' },
         { status: 500 }
       );
     }
 
-    const { userId, messages } = await request.json();
+    // Criar cliente Supabase na rota
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Verificar se usuário tem acesso premium
     const { data: profile } = await supabase

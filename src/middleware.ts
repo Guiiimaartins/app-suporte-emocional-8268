@@ -5,9 +5,19 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Rotas públicas que não precisam de autenticação
-  const publicRoutes = ['/', '/login', '/terms', '/privacy', '/help'];
+  const publicRoutes = [
+    '/',
+    '/auth',
+    '/login',
+    '/terms',
+    '/privacy',
+    '/help',
+    '/api/auth/login',
+    '/api/auth/register',
+  ];
   
-  if (publicRoutes.includes(pathname)) {
+  // Verificar se a rota é pública
+  if (publicRoutes.some(route => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
@@ -15,8 +25,8 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('sb-access-token');
 
   if (!token) {
-    // Redirecionar para login se não estiver autenticado
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Redirecionar para auth se não estiver autenticado
+    return NextResponse.redirect(new URL('/auth', request.url));
   }
 
   return NextResponse.next();
@@ -24,6 +34,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|icon.svg|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 };

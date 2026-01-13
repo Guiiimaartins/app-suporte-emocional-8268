@@ -1,11 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
+// Variáveis de ambiente - Next.js as disponibiliza automaticamente
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 // Verificação de configuração
 export const isSupabaseConfigured = () => {
-  return supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http');
+  return Boolean(supabaseUrl && supabaseAnonKey && supabaseUrl.startsWith('http'));
 };
 
 // Cliente Supabase - retorna null se não configurado (evita erro no build)

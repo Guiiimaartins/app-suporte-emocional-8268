@@ -1,70 +1,50 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
 import Stripe from 'stripe';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
 
-    if (!signature) {
-      return NextResponse.json({ error: 'Assinatura ausente' }, { status: 400 });
-    }
-
     if (!process.env.STRIPE_SECRET_KEY || !process.env.STRIPE_WEBHOOK_SECRET) {
-      return NextResponse.json({ error: 'Stripe não configurado' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Stripe não configurado' },
+        { status: 503 }
+      );
     }
 
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-01-27.acacia',
+      apiVersion: '2025-12-15.clover',
     });
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
-    let event: Stripe.Event;
-
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
-      console.error('Erro ao verificar webhook:', err);
-      return NextResponse.json({ error: 'Webhook inválido' }, { status: 400 });
+    if (!signature) {
+      return NextResponse.json(
+        { error: 'Assinatura ausente' },
+        { status: 400 }
+      );
     }
+
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
 
     // Processar eventos do Stripe
     switch (event.type) {
-      case 'checkout.session.completed': {
+      case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.client_reference_id;
-
-        if (userId) {
-          // Atualizar usuário para premium
-          await supabase
-            .from('user_profiles')
-            .update({
-              subscription_status: 'premium',
-              subscription_started_at: new Date().toISOString(),
-            })
-            .eq('id', userId);
-        }
-
+        // Aqui você pode atualizar o banco de dados com a assinatura
+        console.log('Pagamento concluído:', session.id);
         break;
-      }
 
-      case 'customer.subscription.deleted': {
+      case 'customer.subscription.updated':
+      case 'customer.subscription.deleted':
         const subscription = event.data.object as Stripe.Subscription;
-        const userId = subscription.metadata?.userId;
-
-        if (userId) {
-          // Downgrade para free
-          await supabase
-            .from('user_profiles')
-            .update({
-              subscription_status: 'free',
-            })
-            .eq('id', userId);
-        }
-
+        console.log('Assinatura atualizada:', subscription.id);
         break;
-      }
 
       default:
         console.log(`Evento não tratado: ${event.type}`);

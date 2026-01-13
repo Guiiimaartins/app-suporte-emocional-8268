@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, canUseSupabase } from '@/lib/supabase';
-
-export const runtime = 'edge';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,13 +14,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Obter variáveis de ambiente
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
     // Verificar se Supabase está configurado
-    if (!canUseSupabase() || !supabase) {
+    if (!supabaseUrl || !supabaseAnonKey) {
       return NextResponse.json(
         { error: 'Sistema de autenticação não configurado. Configure as variáveis de ambiente do Supabase.' },
         { status: 503 }
       );
     }
+
+    // Criar cliente Supabase na rota
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
     // Autenticar com Supabase
     const { data, error } = await supabase.auth.signInWithPassword({
